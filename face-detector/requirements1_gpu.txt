@@ -1,0 +1,5 @@
+Cython==0.29.24
+mxnet==1.8.0
+numpy==1.21.0
+onnxruntime-gpu==1.8.1
+pypandoc==1.6.3
