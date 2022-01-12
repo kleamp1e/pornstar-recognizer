@@ -2,16 +2,11 @@ from pydantic import BaseModel
 from typing import List, Dict
 
 
-class ServiceResponse(BaseModel):
+class Service(BaseModel):
     name: str
     version: str
     computingDevice: str
     libraries: Dict[str, str]
-
-
-class RootResponse(BaseModel):
-    service: ServiceResponse
-    timeInMilliseconds: int
 
 
 class Point2D(BaseModel):
@@ -19,14 +14,18 @@ class Point2D(BaseModel):
     y: float
 
 
+class RootResponse(BaseModel):
+    service: Service
+    timeInMilliseconds: int
+
+
 class DetectResponse(BaseModel):
     class Request(BaseModel):
-        class File(BaseModel):
-            name: str
-            size: int
-            sha1: str
-
-        file: File
+        fileName: str
+        fileSize: int
+        fileSha1: str
+        imageWidth: int
+        imageHeight: int
 
     class Response(BaseModel):
         class Face(BaseModel):
@@ -36,25 +35,19 @@ class DetectResponse(BaseModel):
                 x2: float
                 y2: float
 
-            class Attributes(BaseModel):
-                sex: str
-                age: int
-
             score: float
             boundingBox: BoundingBox
             keyPoints: List[Point2D]
-            attributes: Attributes
+            sex: str
+            age: int
             embedding: str
 
         hashTimeInNanoseconds: int
         decodeTimeInNanoseconds: int
         detectionTimeInNanoseconds: int
-        width: int
-        height: int
-        numberOfFaces: int
         faces: List[Face]
 
-    service: ServiceResponse
+    service: Service
     timeInMilliseconds: int
     request: Request
     response: Response

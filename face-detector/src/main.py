@@ -13,6 +13,7 @@ import onnxruntime
 
 import mytypes
 
+
 class FaceDetector:
     def __init__(self):
         self.face_analysis = insightface.app.FaceAnalysis(
@@ -27,6 +28,7 @@ class FaceDetector:
             new_image[0:height, 0:width] = image
             image = new_image
         return self.face_analysis.get(image)
+
 
 def base64_encode_np(array):
     bio = io.BytesIO()
@@ -55,12 +57,14 @@ app.add_middleware(
 
 face_detector = FaceDetector()
 
+
 @app.get("/", response_model=mytypes.RootResponse)
 async def get_root():
     return {
         "service": SERVICE,
         "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
     }
+
 
 @app.post("/detect", response_model=mytypes.DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
@@ -89,15 +93,16 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
         "service": SERVICE,
         "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
         "request": {
-            "file": {"name": file.filename, "size": file_size, "sha1": sha1_hash}
+            "fileName": file.filename,
+            "fileSize": file_size,
+            "fileSha1": sha1_hash,
+            "imageWidth": image.shape[1],
+            "imageHeight": image.shape[0],
         },
         "response": {
             "hashTimeInNanoseconds": hash_time_ns,
             "decodeTimeInNanoseconds": decode_time_ns,
             "detectionTimeInNanoseconds": detection_time_ns,
-            "width": image.shape[1],
-            "height": image.shape[0],
-            "numberOfFaces": len(faces),
             "faces": [
                 {
                     "score": round(float(face.det_score), 4),
@@ -111,7 +116,8 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                         {"x": round(float(xy[0]), 2), "y": round(float(xy[1]), 2)}
                         for xy in face.kps
                     ],
-                    "attributes": {"sex": str(face.sex), "age": int(face.age)},
+                    "sex": str(face.sex),
+                    "age": int(face.age),
                     "embedding": base64_encode_np(face.embedding),
                 }
                 for face in faces
