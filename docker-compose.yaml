@@ -1,16 +1,25 @@
 version: "3"
 services:
-  face-detector:
+  face-detector-cpu:
     build:
       context: "face-detector"
       args:
-        # for CPU
-        # BASE_IMAGE: "ubuntu:20.04"
-        # COMPUTING_DEVICE: "cpu"
-        # for GPU
+        BASE_IMAGE: "ubuntu:20.04"
+        COMPUTING_DEVICE: "cpu"
+    ports:
+      - "8001:8000"
+    # volumes:
+      # - "./face-detector:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace" # DEBUG:
+    # command: "/bin/bash" # DEBUG:
+    # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+    # tty: true # DEBUG:
+  face-detector-gpu:
+    build:
+      context: "face-detector"
+      args:
         BASE_IMAGE: "nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04"
         COMPUTING_DEVICE: "gpu"
-    # for GPU
     deploy:
       resources:
         reservations:
@@ -19,10 +28,10 @@ services:
               count: 1
               capabilities: [gpu]
     ports:
-      - "8000:8000"
-    volumes:
-      - "./face-detector:/mnt/workspace" # DEBUG:
-    working_dir: "/mnt/workspace" # DEBUG:
-    command: "/bin/bash" # DEBUG:
+      - "8002:8000"
+    # volumes:
+      # - "./face-detector:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace" # DEBUG:
+    # command: "/bin/bash" # DEBUG:
     # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
-    tty: true # DEBUG:
+    # tty: true # DEBUG:
