@@ -1,7 +1,10 @@
+import base64
 import datetime
+import io
 
 import fastapi
 import fastapi.middleware.cors
+import numpy as np
 import pydantic
 
 class Service(pydantic.BaseModel):
@@ -11,6 +14,17 @@ class Service(pydantic.BaseModel):
 class RootResponse(pydantic.BaseModel):
     service: Service
     timeInMilliseconds: int
+
+class RecognizeRequest(pydantic.BaseModel):
+    embedding: str
+
+class RecognizeResponse(pydantic.BaseModel):
+    service: Service
+    timeInMilliseconds: int
+
+def base64_decode_np(text):
+    bio = io.BytesIO(base64.standard_b64decode(text))
+    return np.load(bio)
 
 SERVICE = {
     "name": "face-recognizer",
@@ -29,6 +43,15 @@ app.add_middleware(
 
 @app.get("/", response_model=RootResponse)
 async def get_root():
+    return {
+        "service": SERVICE,
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+    }
+
+@app.post("/recognize", response_model=RecognizeResponse)
+async def post_recognize(request: RecognizeRequest):
+    embedding = base64_decode_np(request.embedding)
+    print(embedding)
     return {
         "service": SERVICE,
         "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
