@@ -19,12 +19,6 @@ class Point2D(BaseModel):
     y: float
 
 
-class Point3D(BaseModel):
-    x: float
-    y: float
-    z: float
-
-
 class DetectResponse(BaseModel):
     class Request(BaseModel):
         class File(BaseModel):
@@ -49,8 +43,6 @@ class DetectResponse(BaseModel):
             score: float
             boundingBox: BoundingBox
             keyPoints: List[Point2D]
-            landmarks3d68: List[Point3D]
-            landmarks2d106: List[Point2D]
             attributes: Attributes
             embedding: str
 
@@ -61,39 +53,6 @@ class DetectResponse(BaseModel):
         height: int
         numberOfFaces: int
         faces: List[Face]
-
-    service: ServiceResponse
-    timeInMilliseconds: int
-    request: Request
-    response: Response
-
-
-class CompareRequest(BaseModel):
-    class Pair(BaseModel):
-        index1: int
-        index2: int
-
-    embeddings: List[str]
-    pairs: List[Pair]
-
-
-class CompareResponse(BaseModel):
-    class Request(BaseModel):
-        class Pair(BaseModel):
-            index1: int
-            index2: int
-
-        embeddings: List[str]
-        pairs: List[Pair]
-
-    class Response(BaseModel):
-        class Pair(BaseModel):
-            index1: int
-            index2: int
-            similarity: float
-
-        comparisonTimeInNanoseconds: int
-        pairs: List[Pair]
 
     service: ServiceResponse
     timeInMilliseconds: int
