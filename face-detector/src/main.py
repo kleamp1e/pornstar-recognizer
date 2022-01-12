@@ -1,17 +1,17 @@
+from typing import List, Dict
 import base64
 import datetime
 import hashlib
 import io
 import time
 
+from pydantic import BaseModel
 import cv2
 import fastapi
 import fastapi.middleware.cors
 import insightface
 import numpy as np
 import onnxruntime
-
-import mytypes
 
 
 class FaceDetector:
@@ -28,6 +28,57 @@ class FaceDetector:
             new_image[0:height, 0:width] = image
             image = new_image
         return self.face_analysis.get(image)
+
+
+class Service(BaseModel):
+    name: str
+    version: str
+    computingDevice: str
+    libraries: Dict[str, str]
+
+
+class Point2D(BaseModel):
+    x: float
+    y: float
+
+
+class RootResponse(BaseModel):
+    service: Service
+    timeInMilliseconds: int
+
+
+class DetectResponse(BaseModel):
+    class Request(BaseModel):
+        fileName: str
+        fileSize: int
+        fileSha1: str
+        imageWidth: int
+        imageHeight: int
+
+    class Response(BaseModel):
+        class Face(BaseModel):
+            class BoundingBox(BaseModel):
+                x1: float
+                y1: float
+                x2: float
+                y2: float
+
+            score: float
+            boundingBox: BoundingBox
+            keyPoints: List[Point2D]
+            sex: str
+            age: int
+            embedding: str
+
+        hashTimeInNanoseconds: int
+        decodeTimeInNanoseconds: int
+        detectionTimeInNanoseconds: int
+        faces: List[Face]
+
+    service: Service
+    timeInMilliseconds: int
+    request: Request
+    response: Response
 
 
 def base64_encode_np(array):
@@ -47,6 +98,8 @@ SERVICE = {
     },
 }
 
+face_detector = FaceDetector()
+
 app = fastapi.FastAPI()
 app.add_middleware(
     fastapi.middleware.cors.CORSMiddleware,
@@ -55,10 +108,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-face_detector = FaceDetector()
 
-
-@app.get("/", response_model=mytypes.RootResponse)
+@app.get("/", response_model=RootResponse)
 async def get_root():
     return {
         "service": SERVICE,
@@ -66,7 +117,7 @@ async def get_root():
     }
 
 
-@app.post("/detect", response_model=mytypes.DetectResponse)
+@app.post("/detect", response_model=DetectResponse)
 async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
     image_bin = file.file.read()
     start_time_ns = time.perf_counter_ns()
