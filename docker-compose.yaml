@@ -10,6 +10,14 @@ services:
         # for GPU
         BASE_IMAGE: "nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04"
         COMPUTING_DEVICE: "gpu"
+    # for GPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     ports:
       - "8000:8000"
     volumes:
@@ -17,3 +25,4 @@ services:
     working_dir: "/mnt/workspace" # DEBUG:
     command: "/bin/bash" # DEBUG:
     # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+    tty: true # DEBUG:

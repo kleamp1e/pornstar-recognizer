@@ -19,7 +19,7 @@ RUN python3 -m pip install --requirement requirements1_${COMPUTING_DEVICE}.txt
 COPY requirements2.txt ./
 RUN python3 -m pip install --requirement requirements2.txt
 RUN insightface-cli model.download buffalo_l
-# COPY src/ ./src/
-# RUN chmod 755 /root
-# ENV HOME /root
-# CMD ["uvicorn", "--host=0.0.0.0", "--app-dir=src", "main:app"]
+COPY src/ ./src/
+RUN chmod 755 /root
+ENV HOME /root
+CMD ["uvicorn", "--host=0.0.0.0", "--app-dir=src", "main:app"]
