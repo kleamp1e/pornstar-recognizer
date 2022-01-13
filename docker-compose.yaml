@@ -45,6 +45,6 @@ services:
       - "./face-recognizer/db:/mnt/db:ro"
       - "./face-recognizer:/mnt/workspace" # DEBUG:
     working_dir: "/mnt/workspace" # DEBUG:
-    # command: "bash" # DEBUG:
-    command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+    command: "bash" # DEBUG:
+    # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
     tty: true # DEBUG:

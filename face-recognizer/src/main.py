@@ -10,45 +10,63 @@ import fastapi.middleware.cors
 import numpy as np
 import pydantic
 
+
 class ActorDatabase:
     @classmethod
     def load(cls, jsonl_path):
-      with jsonl_path.open("r") as file:
-          actors = [json.loads(line) for line in file]
-      return cls(actors)
+        with jsonl_path.open("r") as file:
+            actors = [json.loads(line) for line in file]
+        return cls(actors)
 
     def __init__(self, actors):
-      self.actors = actors
+        self.actors = actors
+
+    def __getitem__(self, index):
+        return self.actors[index]
+
+
+class FaceDatabase:
+    @classmethod
+    def load(cls, npy_path):
+        return cls(np.load(npy_path))
+
+    def __init__(self, array):
+        self.array = array
 
 
 class Service(pydantic.BaseModel):
     name: str
     version: str
 
+
 class RootResponse(pydantic.BaseModel):
     service: Service
     timeInMilliseconds: int
 
+
 class RecognizeRequest(pydantic.BaseModel):
     embedding: str
+
 
 class RecognizeResponse(pydantic.BaseModel):
     service: Service
     timeInMilliseconds: int
 
+
 def base64_decode_np(text):
     bio = io.BytesIO(base64.standard_b64decode(text))
     return np.load(bio)
 
+
+DB_DIR = pathlib.Path(os.environ.get("DB_DIR"))
 SERVICE = {
     "name": "face-recognizer",
     "version": "0.1.0",
 }
 
-DB_DIR = pathlib.Path(os.environ.get("DB_DIR"))
 
 actor_db = ActorDatabase.load(DB_DIR / "actor.jsonl")
-print(len(actor_db.actors))
+face_db = FaceDatabase.load(DB_DIR / "actor.npy")
 
 app = fastapi.FastAPI()
 app.add_middleware(
@@ -65,6 +83,7 @@ async def get_root():
         "service": SERVICE,
         "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
     }
+
 
 @app.post("/recognize", response_model=RecognizeResponse)
 async def post_recognize(request: RecognizeRequest):
