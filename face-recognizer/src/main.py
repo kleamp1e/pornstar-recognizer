@@ -1,11 +1,25 @@
 import base64
 import datetime
 import io
+import json
+import os
+import pathlib
 
 import fastapi
 import fastapi.middleware.cors
 import numpy as np
 import pydantic
+
+class ActorDatabase:
+    @classmethod
+    def load(cls, jsonl_path):
+      with jsonl_path.open("r") as file:
+          actors = [json.loads(line) for line in file]
+      return cls(actors)
+
+    def __init__(self, actors):
+      self.actors = actors
+
 
 class Service(pydantic.BaseModel):
     name: str
@@ -31,6 +45,10 @@ SERVICE = {
     "version": "0.1.0",
 }
 
+DB_DIR = pathlib.Path(os.environ.get("DB_DIR"))
+
+actor_db = ActorDatabase.load(DB_DIR / "actor.jsonl")
+print(len(actor_db.actors))
 
 app = fastapi.FastAPI()
 app.add_middleware(
