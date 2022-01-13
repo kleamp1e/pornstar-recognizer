@@ -33,6 +33,19 @@ class FaceDatabase:
     def __init__(self, array):
         self.array = array
 
+    @property
+    def id(self):
+        return self.array["id"]
+
+    @property
+    def embedding(self):
+        return self.array["embedding"]
+
+    def compute_similarities(self, query_embedding):
+        return np.array(
+            [np.dot(query_embedding, embedding) for embedding in self.embedding]
+        )
+
 
 class Service(pydantic.BaseModel):
     name: str
@@ -68,19 +81,6 @@ SERVICE = {
 actor_db = ActorDatabase.load(DB_DIR / "actor.jsonl")
 face_db = FaceDatabase.load(DB_DIR / "actor.npy")
 
-embedding = face_db.array["embedding"]
-embedding = embedding / np.linalg.norm(embedding, axis=1).reshape((-1, 1))
-
-f1 = embedding[0]
-f2 = embedding[1]
-f3 = embedding[-1]
-print(np.linalg.norm(f1))
-print(np.linalg.norm(f2))
-print(np.dot(f1, f1))
-print(np.dot(f1, f2))
-print(np.dot(f1, f3))
-# print(embedding / np.linalg.norm(embedding, axis=1).reshape((-1, 1)))
-
 app = fastapi.FastAPI()
 app.add_middleware(
     fastapi.middleware.cors.CORSMiddleware,
@@ -102,6 +102,8 @@ async def get_root():
 async def post_recognize(request: RecognizeRequest):
     embedding = base64_decode_np(request.embedding)
     print(embedding)
+    similarities = face_db.compute_similarities(embedding)
+    print(similarities)
     return {
         "service": SERVICE,
         "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
