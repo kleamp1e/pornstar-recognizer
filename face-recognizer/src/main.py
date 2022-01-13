@@ -68,20 +68,18 @@ SERVICE = {
 actor_db = ActorDatabase.load(DB_DIR / "actor.jsonl")
 face_db = FaceDatabase.load(DB_DIR / "actor.npy")
 
-f1 = face_db.array[0]["embedding"]
-f1 = f1 / np.linalg.norm(f1)
-f2 = face_db.array[1]["embedding"]
-f2 = f2 / np.linalg.norm(f2)
-f3 = face_db.array[-1]["embedding"]
-f3 = f3 / np.linalg.norm(f3)
+embedding = face_db.array["embedding"]
+embedding = embedding / np.linalg.norm(embedding, axis=1).reshape((-1, 1))
+
+f1 = embedding[0]
+f2 = embedding[1]
+f3 = embedding[-1]
 print(np.linalg.norm(f1))
 print(np.linalg.norm(f2))
-print(np.linalg.norm(face_db.array["embedding"], axis=1))
-
 print(np.dot(f1, f1))
 print(np.dot(f1, f2))
 print(np.dot(f1, f3))
-
+# print(embedding / np.linalg.norm(embedding, axis=1).reshape((-1, 1)))
 
 app = fastapi.FastAPI()
 app.add_middleware(
