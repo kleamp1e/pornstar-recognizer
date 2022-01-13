@@ -62,18 +62,16 @@ class RecognizeRequest(pydantic.BaseModel):
     embedding: str
 
 
-class ActorName(pydantic.BaseModel):
-    ja: Optional[str]
-    jaKana: Optional[str]
-    en: Optional[str]
-
-
-class SimilarActor(pydantic.BaseModel):
-    similarity: float
-    names: List[ActorName]
-
-
 class RecognizeResponse(pydantic.BaseModel):
+    class SimilarActor(pydantic.BaseModel):
+        class ActorName(pydantic.BaseModel):
+            ja: Optional[str]
+            jaKana: Optional[str]
+            en: Optional[str]
+
+        similarity: float
+        names: List[ActorName]
+
     service: Service
     timeInMilliseconds: int
     actors: List[SimilarActor]
