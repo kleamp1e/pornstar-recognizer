@@ -1,3 +1,4 @@
+from typing import List, Optional
 import base64
 import datetime
 import io
@@ -61,9 +62,21 @@ class RecognizeRequest(pydantic.BaseModel):
     embedding: str
 
 
+class ActorName(pydantic.BaseModel):
+    ja: Optional[str]
+    jaKana: Optional[str]
+    en: Optional[str]
+
+
+class SimilarActor(pydantic.BaseModel):
+    similarity: float
+    names: List[ActorName]
+
+
 class RecognizeResponse(pydantic.BaseModel):
     service: Service
     timeInMilliseconds: int
+    actors: List[SimilarActor]
 
 
 def base64_decode_np(text):
@@ -101,10 +114,29 @@ async def get_root():
 @app.post("/recognize", response_model=RecognizeResponse)
 async def post_recognize(request: RecognizeRequest):
     embedding = base64_decode_np(request.embedding)
-    print(embedding)
     similarities = face_db.compute_similarities(embedding)
-    print(similarities)
+
+    actor_table = {}
+    for index, similarity in enumerate(similarities):
+        if similarity < 0.3:
+            continue
+        actor_id = face_db.id[index]
+        actor_similarities = actor_table.get(actor_id, [])
+        actor_similarities.append(similarity)
+        actor_table[actor_id] = actor_similarities
+
+    actor_list = sorted(actor_table.items(), key=lambda x: max(x[1]), reverse=True)[
+        0:10
+    ]
+
     return {
         "service": SERVICE,
         "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+        "actors": [
+            {
+                "similarity": max(actor_similarities),
+                "names": actor_db[actor_id]["names"],
+            }
+            for actor_id, actor_similarities in actor_list
+        ],
     }
