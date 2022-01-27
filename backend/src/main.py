@@ -83,7 +83,7 @@ class Point2D(BaseModel):
 
 class RootResponse(BaseModel):
     service: Service
-    timeInMilliseconds: int
+    time: float
 
 
 class DetectResponse(BaseModel):
@@ -115,7 +115,7 @@ class DetectResponse(BaseModel):
         faces: List[Face]
 
     service: Service
-    timeInMilliseconds: int
+    time: float
     request: Request
     response: Response
 
@@ -135,7 +135,7 @@ class RecognizeResponse(pydantic.BaseModel):
         names: List[ActorName]
 
     service: Service
-    timeInMilliseconds: int
+    time: float
     actors: List[SimilarActor]
 
 
@@ -178,7 +178,7 @@ app.add_middleware(
 async def get_root():
     return {
         "service": SERVICE,
-        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+        "time": datetime.datetime.now().timestamp(),
     }
 
 
@@ -207,7 +207,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
 
     return {
         "service": SERVICE,
-        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+        "time": datetime.datetime.now().timestamp(),
         "request": {
             "fileName": file.filename,
             "fileSize": file_size,
@@ -262,7 +262,7 @@ async def post_recognize(request: RecognizeRequest):
 
     return {
         "service": SERVICE,
-        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+        "time": datetime.datetime.now().timestamp(),
         "actors": [
             {
                 "similarity": max(actor_similarities),
