@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import base64
 import datetime
 import hashlib
@@ -129,6 +129,7 @@ class RecognizeResponse(pydantic.BaseModel):
 
         similarity: float
         names: List[ActorName]
+        fanza: Optional[Dict[str, Any]]
 
     service: Service
     time: float
@@ -252,8 +253,9 @@ async def post_recognize(request: RecognizeRequest):
         "time": datetime.datetime.now().timestamp(),
         "actors": [
             {
-                "similarity": max(actor_similarities),
+                "similarity": round(float(max(actor_similarities)), 4),
                 "names": actor_db[actor_id]["names"],
+                "fanza": actor_db[actor_id].get("fanza", None),
             }
             for actor_id, actor_similarities in actor_list
         ],
