@@ -1,5 +1,6 @@
 aiofiles==0.7.0
 fastapi==0.66.0
 insightface==0.5
+numpy==1.21.0
 python-multipart==0.0.5
 uvicorn==0.14.0

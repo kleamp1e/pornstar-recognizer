@@ -4,22 +4,12 @@ services:
     build: "backend"
     ports:
       - "8001:8000"
-    # volumes:
-      # - "./backend:/mnt/workspace" # DEBUG:
-    # working_dir: "/mnt/workspace" # DEBUG:
-    # command: "/bin/bash" # DEBUG:
-    # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
-    # tty: true # DEBUG:
-  face-recognizer:
-    build: "face-recognizer"
-    ports:
-      - "8002:8000"
     environment:
       DB_DIR: "/mnt/db"
     volumes:
-      - "./face-recognizer/db:/mnt/db:ro"
-      - "./face-recognizer:/mnt/workspace" # DEBUG:
+      - "./backend/db:/mnt/db:ro"
+      - "./backend:/mnt/workspace" # DEBUG:
     working_dir: "/mnt/workspace" # DEBUG:
-    command: "bash" # DEBUG:
-    # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+    # command: "/bin/bash" # DEBUG:
+    command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
     tty: true # DEBUG:

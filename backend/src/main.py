@@ -1,8 +1,11 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 import base64
 import datetime
 import hashlib
 import io
+import json
+import os
+import pathlib
 import time
 
 from pydantic import BaseModel
@@ -12,6 +15,7 @@ import fastapi.middleware.cors
 import insightface
 import numpy as np
 import onnxruntime
+import pydantic
 
 
 class FaceDetector:
@@ -28,6 +32,42 @@ class FaceDetector:
             new_image[0:height, 0:width] = image
             image = new_image
         return self.face_analysis.get(image)
+
+
+class ActorDatabase:
+    @classmethod
+    def load(cls, jsonl_path):
+        with jsonl_path.open("r") as file:
+            actors = [json.loads(line) for line in file]
+        return cls(actors)
+
+    def __init__(self, actors):
+        self.actors = actors
+
+    def __getitem__(self, index):
+        return self.actors[index]
+
+
+class FaceDatabase:
+    @classmethod
+    def load(cls, npy_path):
+        return cls(np.load(npy_path))
+
+    def __init__(self, array):
+        self.array = array
+
+    @property
+    def id(self):
+        return self.array["id"]
+
+    @property
+    def embedding(self):
+        return self.array["embedding"]
+
+    def compute_similarities(self, query_embedding):
+        return np.array(
+            [np.dot(query_embedding, embedding) for embedding in self.embedding]
+        )
 
 
 class Service(BaseModel):
@@ -80,12 +120,37 @@ class DetectResponse(BaseModel):
     response: Response
 
 
+class RecognizeRequest(pydantic.BaseModel):
+    embedding: str
+
+
+class RecognizeResponse(pydantic.BaseModel):
+    class SimilarActor(pydantic.BaseModel):
+        class ActorName(pydantic.BaseModel):
+            ja: Optional[str]
+            jaKana: Optional[str]
+            en: Optional[str]
+
+        similarity: float
+        names: List[ActorName]
+
+    service: Service
+    timeInMilliseconds: int
+    actors: List[SimilarActor]
+
+
 def base64_encode_np(array):
     bio = io.BytesIO()
     np.save(bio, array)
     return base64.standard_b64encode(bio.getvalue()).decode("utf-8")
 
 
+def base64_decode_np(text):
+    bio = io.BytesIO(base64.standard_b64decode(text))
+    return np.load(bio)
+
+
+DB_DIR = pathlib.Path(os.environ.get("DB_DIR"))
 SERVICE = {
     "name": "face-detector",
     "version": "0.2.0",
@@ -97,6 +162,8 @@ SERVICE = {
 }
 
 face_detector = FaceDetector()
+actor_db = ActorDatabase.load(DB_DIR / "actor.jsonl")
+face_db = FaceDatabase.load(DB_DIR / "actor.npy")
 
 app = fastapi.FastAPI()
 app.add_middleware(
@@ -172,4 +239,35 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                 for face in faces
             ],
         },
+    }
+
+
+@app.post("/recognize", response_model=RecognizeResponse)
+async def post_recognize(request: RecognizeRequest):
+    embedding = base64_decode_np(request.embedding)
+    similarities = face_db.compute_similarities(embedding)
+
+    actor_table = {}
+    for index, similarity in enumerate(similarities):
+        if similarity < 0.3:
+            continue
+        actor_id = face_db.id[index]
+        actor_similarities = actor_table.get(actor_id, [])
+        actor_similarities.append(similarity)
+        actor_table[actor_id] = actor_similarities
+
+    actor_list = sorted(actor_table.items(), key=lambda x: max(x[1]), reverse=True)[
+        0:10
+    ]
+
+    return {
+        "service": SERVICE,
+        "timeInMilliseconds": int(datetime.datetime.now().timestamp() * 1000),
+        "actors": [
+            {
+                "similarity": max(actor_similarities),
+                "names": actor_db[actor_id]["names"],
+            }
+            for actor_id, actor_similarities in actor_list
+        ],
     }
