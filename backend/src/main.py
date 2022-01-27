@@ -147,6 +147,14 @@ def base64_decode_np(text):
     return np.load(bio)
 
 
+def round2(value):
+    return round(float(value), 2)
+
+
+def round4(value):
+    return round(float(value), 4)
+
+
 DB_DIR = pathlib.Path(os.environ.get("DB_DIR"))
 SERVICE = {
     "name": "face-detector",
@@ -209,20 +217,21 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
         "response": {
             "faces": [
                 {
-                    "score": round(float(face.det_score), 4),
+                    "score": round4(face.det_score),
                     "boundingBox": {
-                        "x1": round(float(face.bbox[0]), 2),
-                        "y1": round(float(face.bbox[1]), 2),
-                        "x2": round(float(face.bbox[2]), 2),
-                        "y2": round(float(face.bbox[3]), 2),
+                        "x1": round2(face.bbox[0]),
+                        "y1": round2(face.bbox[1]),
+                        "x2": round2(face.bbox[2]),
+                        "y2": round2(face.bbox[3]),
                     },
                     "keyPoints": [
-                        {"x": round(float(xy[0]), 2), "y": round(float(xy[1]), 2)}
-                        for xy in face.kps
+                        {"x": round2(xy[0]), "y": round2(xy[1])} for xy in face.kps
                     ],
                     "sex": str(face.sex),
                     "age": int(face.age),
-                    "embedding": base64_encode_np(face.normed_embedding.astype(np.float16)),
+                    "embedding": base64_encode_np(
+                        face.normed_embedding.astype(np.float16)
+                    ),
                 }
                 for face in faces
             ],
@@ -253,7 +262,7 @@ async def post_recognize(request: RecognizeRequest):
         "time": datetime.datetime.now().timestamp(),
         "actors": [
             {
-                "similarity": round(float(max(actor_similarities)), 4),
+                "similarity": round4(max(actor_similarities)),
                 "names": actor_db[actor_id]["names"],
                 "fanza": actor_db[actor_id].get("fanza", None),
             }
