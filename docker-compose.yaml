@@ -8,8 +8,8 @@ services:
       DB_DIR: "/mnt/db"
     volumes:
       - "./backend/db:/mnt/db:ro"
-      - "./backend:/mnt/workspace" # DEBUG:
-    working_dir: "/mnt/workspace" # DEBUG:
+      # - "./backend:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace" # DEBUG:
     # command: "/bin/bash" # DEBUG:
-    command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
-    tty: true # DEBUG:
+    # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
+    # tty: true # DEBUG:
