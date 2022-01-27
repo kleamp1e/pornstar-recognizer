@@ -89,7 +89,7 @@ def base64_encode_np(array):
 
 SERVICE = {
     "name": "face-detector",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "computingDevice": onnxruntime.get_device(),
     "libraries": {
         "cv2": cv2.__version__,
@@ -169,7 +169,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                     ],
                     "sex": str(face.sex),
                     "age": int(face.age),
-                    "embedding": base64_encode_np(face.embedding),
+                    "embedding": base64_encode_np(face.normed_embedding),
                 }
                 for face in faces
             ],
