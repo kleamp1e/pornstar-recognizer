@@ -1,11 +1,11 @@
 version: "3"
 services:
-  face-detector:
-    build: "face-detector"
+  backend:
+    build: "backend"
     ports:
       - "8001:8000"
     # volumes:
-      # - "./face-detector:/mnt/workspace" # DEBUG:
+      # - "./backend:/mnt/workspace" # DEBUG:
     # working_dir: "/mnt/workspace" # DEBUG:
     # command: "/bin/bash" # DEBUG:
     # command: "uvicorn --reload --host=0.0.0.0 --app-dir=src main:app" # DEBUG:
