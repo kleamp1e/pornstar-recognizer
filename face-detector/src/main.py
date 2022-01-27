@@ -33,7 +33,6 @@ class FaceDetector:
 class Service(BaseModel):
     name: str
     version: str
-    computingDevice: str
     libraries: Dict[str, str]
 
 
@@ -90,7 +89,6 @@ def base64_encode_np(array):
 SERVICE = {
     "name": "face-detector",
     "version": "0.2.0",
-    "computingDevice": onnxruntime.get_device(),
     "libraries": {
         "cv2": cv2.__version__,
         "insightface": insightface.__version__,

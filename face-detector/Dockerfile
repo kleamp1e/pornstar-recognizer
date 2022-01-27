@@ -1,5 +1,4 @@
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
+FROM ubuntu:20.04
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
     build-essential \
@@ -14,10 +13,18 @@ RUN apt-get update \
 RUN python3 -m pip install --upgrade pip setuptools
 WORKDIR /opt/app
 ARG COMPUTING_DEVICE
-COPY requirements1_${COMPUTING_DEVICE}.txt ./
-RUN python3 -m pip install --requirement requirements1_${COMPUTING_DEVICE}.txt
+COPY requirements1.txt ./
+RUN python3 -m pip install --requirement requirements1.txt
 COPY requirements2.txt ./
 RUN python3 -m pip install --requirement requirements2.txt
+# MEMO: http://storage.insightface.ai/ にアクセスできないため、一時的にダウンロード済みのモデルファイルを使用する。
+COPY buffalo_l.zip /root/.insightface/models/buffalo_l.zip
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+    unzip \
+  && rm --recursive --force /var/lib/apt/lists/* \
+  && cd /root/.insightface/models/ \
+  && unzip -d buffalo_l buffalo_l.zip
 RUN insightface-cli model.download buffalo_l
 COPY src/ ./src/
 RUN chmod 755 /root
