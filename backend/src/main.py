@@ -221,7 +221,7 @@ async def post_detect(file: fastapi.UploadFile = fastapi.File(...)):
                     ],
                     "sex": str(face.sex),
                     "age": int(face.age),
-                    "embedding": base64_encode_np(face.normed_embedding),
+                    "embedding": base64_encode_np(face.normed_embedding.astype(np.float16)),
                 }
                 for face in faces
             ],
