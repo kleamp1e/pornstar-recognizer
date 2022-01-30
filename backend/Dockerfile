@@ -17,7 +17,9 @@ COPY requirements1.txt ./
 RUN python3 -m pip install --requirement requirements1.txt
 COPY requirements2.txt ./
 RUN python3 -m pip install --requirement requirements2.txt
+
 # MEMO: http://storage.insightface.ai/ にアクセスできないため、一時的にダウンロード済みのモデルファイルを使用する。
+# RUN insightface-cli model.download buffalo_l
 COPY buffalo_l.zip /root/.insightface/models/buffalo_l.zip
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
@@ -25,7 +27,7 @@ RUN apt-get update \
   && rm --recursive --force /var/lib/apt/lists/* \
   && cd /root/.insightface/models/ \
   && unzip -d buffalo_l buffalo_l.zip
-RUN insightface-cli model.download buffalo_l
+
 COPY src/ ./src/
 RUN chmod 755 /root
 ENV HOME /root
