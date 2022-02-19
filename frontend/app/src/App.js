@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import Dropzone from "react-dropzone";
 
 import "./App.css";
@@ -13,14 +13,13 @@ function loadFile(file) {
   });
 }
 
-function MyDropzone() {
+function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children = null }) {
   const onDrop = useCallback(async (acceptedFiles) => {
-    // console.log({acceptedFiles});
     if ( acceptedFiles.length < 0 ) return;
-    if ( acceptedFiles[0].type != "image/jpeg" ) return;
+    if ( acceptableTypes.indexOf(acceptedFiles[0].type) < 0 ) return;
     const imageFile = acceptedFiles[0];
     const imageDataUrl = await loadFile(imageFile);
-    console.log({imageDataUrl});
+    onImageDrop({file: imageFile, dataUrl: imageDataUrl});
   }, []);
 
   return (
@@ -28,19 +27,38 @@ function MyDropzone() {
       {({getRootProps, getInputProps}) => (
         <div {...getRootProps()}>
           <input {...getInputProps()} />
-          <p>Drag 'n' drop some files here, or click to select files</p>
+          {children}
         </div>
       )}
     </Dropzone>
-  )
+  );
 }
 
 export default function App() {
+  const [image, setImage] = useState(null);
+  const onImageDrop = useCallback((image) => {
+    setImage(image);
+  });
+
   return (
     <div className="App">
       <h1>Pornstar Recognizer</h1>
       <h1>Input</h1>
-      <MyDropzone />
+      <div
+          style={{
+            border: "solid 1px #CCCCCC",
+            padding: "5px",
+          }}>
+        <ImageDropzone
+            onImageDrop={onImageDrop}
+            acceptableTypes={["image/jpeg"]}>
+          {image == null ? (
+            <span>ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。</span>
+          ) : (
+            <img src={image.dataUrl} />
+          )}
+        </ImageDropzone>
+      </div>
     </div>
   );
 }
