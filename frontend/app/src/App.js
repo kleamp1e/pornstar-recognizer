@@ -20,7 +20,7 @@ function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children 
     const imageFile = acceptedFiles[0];
     const imageDataUrl = await loadFile(imageFile);
     onImageDrop({file: imageFile, dataUrl: imageDataUrl});
-  }, []);
+  }, [onImageDrop]);
 
   return (
     <Dropzone onDrop={onDrop}>
@@ -35,14 +35,26 @@ function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children 
 }
 
 export default function App() {
+  const [backendUrl, setBackendUrl] = useState("http://localhost:8001");
   const [image, setImage] = useState(null);
+
   const onImageDrop = useCallback((image) => {
     setImage(image);
-  });
+    console.log({backendUrl});
+  }, [backendUrl]);
 
   return (
     <div className="App">
       <h1>Pornstar Recognizer</h1>
+      <h1>Settings</h1>
+      <label>
+        Backend URL:{" "}
+        <input
+            type="text"
+            size={50}
+            value={backendUrl}
+            onChange={(e) => setBackendUrl(e.target.value)} />
+      </label>
       <h1>Input</h1>
       <div
           style={{
