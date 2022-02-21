@@ -16,11 +16,25 @@ function loadFile(file) {
 async function detectFace({ backendUrl, imageFile }) {
   const formData = new FormData();
   formData.append("file", imageFile)
-  const param = {
+  const options = {
     method: "POST",
     body: formData,
   };
-  const response = await fetch(`${backendUrl}/detect`, param);
+  const response = await fetch(`${backendUrl}/detect`, options);
+  return await response.json();
+}
+
+async function recognizeFace({ backendUrl, embedding }) {
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      embedding,
+    }),
+  };
+  const response = await fetch(`${backendUrl}/recognize`, options);
   return await response.json();
 }
 
@@ -109,6 +123,14 @@ export default function App() {
     const detectionResult = await detectFace({ backendUrl, imageFile: image.file });
     console.log({detectionResult});
     setDetectionResult(detectionResult);
+
+    if ( detectionResult.response.faces.length > 0 ) {
+      const face = detectionResult.response.faces[1];
+      console.log({face});
+      const { embedding } = face;
+      const ret = await recognizeFace({ backendUrl, embedding });
+      console.log({ret});
+    }
   }, [backendUrl]);
 
   return (
@@ -140,7 +162,6 @@ export default function App() {
       {image != null && (
         <>
           <h1>Result</h1>
-          <img src={image.dataUrl} />
           <DetectionResultImage
             imageUrl={image.dataUrl}
             imageWidth={detectionResult.request.imageWidth}
