@@ -46,19 +46,23 @@ export default function App() {
       <h1>Input</h1>
       <div
           style={{
+            cursor: "pointer",
             border: "solid 1px #CCCCCC",
             padding: "5px",
+            width: "400px",
           }}>
         <ImageDropzone
             onImageDrop={onImageDrop}
             acceptableTypes={["image/jpeg"]}>
-          {image == null ? (
-            <span>ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。</span>
-          ) : (
-            <img src={image.dataUrl} />
-          )}
+          <span>ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。</span>
         </ImageDropzone>
       </div>
+      {image != null && (
+        <>
+          <h1>Result</h1>
+          <img src={image.dataUrl} />
+        </>
+      )}
     </div>
   );
 }
