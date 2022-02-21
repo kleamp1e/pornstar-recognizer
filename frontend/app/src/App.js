@@ -13,6 +13,17 @@ function loadFile(file) {
   });
 }
 
+async function detectFace({ backendUrl, imageFile }) {
+  const formData = new FormData();
+  formData.append("file", imageFile)
+  const param = {
+    method: "POST",
+    body: formData,
+  };
+  const response = await fetch(`${backendUrl}/detect`, param);
+  return await response.json();
+}
+
 function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children = null }) {
   const onDrop = useCallback(async (acceptedFiles) => {
     if ( acceptedFiles.length < 0 ) return;
@@ -38,9 +49,11 @@ export default function App() {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8001");
   const [image, setImage] = useState(null);
 
-  const onImageDrop = useCallback((image) => {
+  const onImageDrop = useCallback(async (image) => {
     setImage(image);
-    console.log({backendUrl});
+
+    const detectionResult = await detectFace({ backendUrl, imageFile: image.file });
+    console.log({detectionResult});
   }, [backendUrl]);
 
   return (
