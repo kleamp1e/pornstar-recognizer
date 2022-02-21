@@ -45,15 +45,70 @@ function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children 
   );
 }
 
+function BoundingBox({ face }) {
+  const { x1, y1, x2, y2 } = face.boundingBox;
+  return (
+    <rect
+        x={x1}
+        y={y1}
+        width={x2 - x1}
+        height={y2 - y1}
+        stroke="red"
+        fill="none" />
+  );
+};
+
+function Face({ face }) {
+  return (
+    <g>
+      <BoundingBox
+          face={face} />
+    </g>
+  );
+}
+
+function Faces({ faces }) {
+  return (
+    <g>
+      {faces.map((face, index) => (
+        <Face
+            key={index}
+            face={face} />
+      ))}
+    </g>
+  );
+}
+
+function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces }) {
+  return (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+        viewBox={`0 0 ${imageWidth} ${imageHeight}`}
+        width={imageWidth}
+        height={imageHeight}>
+      <image
+          x={0}
+          y={0}
+          width={imageWidth}
+          height={imageHeight}
+          href={imageUrl} />
+      <Faces faces={faces} />
+    </svg>
+  );
+}
+
 export default function App() {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8001");
   const [image, setImage] = useState(null);
+  const [detectionResult, setDetectionResult] = useState(null);
 
   const onImageDrop = useCallback(async (image) => {
     setImage(image);
 
     const detectionResult = await detectFace({ backendUrl, imageFile: image.file });
     console.log({detectionResult});
+    setDetectionResult(detectionResult);
   }, [backendUrl]);
 
   return (
@@ -86,6 +141,11 @@ export default function App() {
         <>
           <h1>Result</h1>
           <img src={image.dataUrl} />
+          <DetectionResultImage
+            imageUrl={image.dataUrl}
+            imageWidth={detectionResult.request.imageWidth}
+            imageHeight={detectionResult.request.imageHeight}
+            faces={detectionResult == null ? [] : detectionResult.response.faces} />
         </>
       )}
     </div>
