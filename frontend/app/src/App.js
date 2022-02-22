@@ -59,41 +59,73 @@ function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children 
   );
 }
 
-function BoundingBox({ face }) {
+const colorMap = {
+  "M": "#0000CC",
+  "F": "#CC0000",
+};
+
+function BoundingBox({ face, selected, onClick }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
+  const color = colorMap[face.sex];
+  const alpha = (selected ? "CC" : "99");
+  const strokeWidth = (selected ? 3 : 1);
   return (
-    <rect
-        x={x1}
-        y={y1}
-        width={x2 - x1}
-        height={y2 - y1}
-        stroke="red"
-        fill="none" />
+    <g>
+      <rect
+          x={x1 - 1}
+          y={y1 - 1}
+          width={x2 - x1 + 2}
+          height={y2 - y1 + 2}
+          stroke={"#FFFFFF" + alpha}
+          strokeWidth={strokeWidth}
+          fill="none" />
+      <rect
+          x={x1}
+          y={y1}
+          width={x2 - x1}
+          height={y2 - y1}
+          stroke={color + alpha}
+          strokeWidth={strokeWidth}
+          fill="none" />
+      <rect
+          style={{cursor: "pointer"}}
+          x={x1}
+          y={y1}
+          width={x2 - x1}
+          height={y2 - y1}
+          stroke="none"
+          fill="#FFFFFF00"
+          onClick={onClick} />
+    </g>
   );
 };
 
-function Face({ face }) {
+function Face({ face, selected, onClick }) {
   return (
     <g>
       <BoundingBox
-          face={face} />
+          face={face}
+          selected={selected}
+          onClick={onClick} />
     </g>
   );
 }
 
-function Faces({ faces }) {
+function Faces({ faces, selectedIndex, onClick }) {
   return (
     <g>
       {faces.map((face, index) => (
         <Face
             key={index}
-            face={face} />
+            face={face}
+            selected={index === selectedIndex}
+            onClick={() => onClick({ index, face })} />
       ))}
     </g>
   );
 }
 
-function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces }) {
+function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces, selectedIndex, onFaceClick }) {
   return (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +139,10 @@ function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces }) {
           width={imageWidth}
           height={imageHeight}
           href={imageUrl} />
-      <Faces faces={faces} />
+      <Faces
+          faces={faces}
+          selectedIndex={selectedIndex}
+          onClick={onFaceClick} />
     </svg>
   );
 }
@@ -136,6 +171,7 @@ export default function App() {
   const [detectionResult, setDetectionResult] = useState(null);
   const [face, setFace] = useState(null);
   const [recognitionResult, setRecognitionResult] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const onImageDrop = useCallback(async (image) => {
     setImage(image);
@@ -189,7 +225,9 @@ export default function App() {
               imageUrl={image.dataUrl}
               imageWidth={detectionResult.request.imageWidth}
               imageHeight={detectionResult.request.imageHeight}
-              faces={detectionResult == null ? [] : detectionResult.response.faces} />
+              faces={detectionResult == null ? [] : detectionResult.response.faces}
+              selectedIndex={selectedIndex}
+              onFaceClick={({ index, face }) => setSelectedIndex(index)} />
           </div>
           {face != null && (
             <div>
