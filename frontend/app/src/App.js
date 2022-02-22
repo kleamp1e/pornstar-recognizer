@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Dropzone from "react-dropzone";
 
 import { detectFace, recognizeFace } from "./lib/api";
@@ -11,6 +11,19 @@ function loadFile(file) {
       resolve(fileReader.result);
     }, false);
     fileReader.readAsDataURL(file);
+  });
+}
+
+function getImageSize(url) {
+  return new Promise((resolve, reject) => {
+    var image = new Image() ;
+    image.addEventListener("load", () => {
+      resolve({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      });
+    }, false);
+    image.src = url;
   });
 }
 
@@ -130,7 +143,7 @@ function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces, select
   );
 }
 
-function FaceImage({ imageUrl, imageWidth, imageHeight, face, faceWidth = 200, faceHeight = 200 }) {
+function FaceCroppedImage({ imageUrl, imageWidth, imageHeight, face, faceWidth = 200, faceHeight = 200 }) {
   const { x1, y1, x2, y2 } = face.boundingBox;
   return (
     <svg
@@ -161,41 +174,71 @@ function chooseFaceIndex(faces) {
 
 export default function App() {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8001");
-
-  const [state, setState] = useState(null);
-
-  const [face, setFace] = useState(null);
-  const [recognitionResult, setRecognitionResult] = useState(null);
-
-  const selectFace = async (detectionResult, faceIndex) => {
-    setState((prev) => ({
-      ...prev,
-      selectedFaceIndex: faceIndex,
-    }));
-
-    const face = detectionResult.response.faces[faceIndex];
-    setFace(face);
-    console.log({face});
-    const { embedding } = face;
-    const recognitionResult = await recognizeFace({ backendUrl, embedding });
-    console.log({recognitionResult});
-    setRecognitionResult(recognitionResult);
-  };
+  const [image, setImage] = useState(null);
+  const [detection, setDetection] = useState({image: null});
+  const [recognition, setRecognition] = useState({image: null});
 
   const onImageDrop = useCallback(async (image) => {
-    setState({ image });
-
-    const detectionResult = await detectFace({ backendUrl, imageFile: image.file });
-    setState((prev) => ({
-      ...prev,
-      detectionResult,
-    }));
-
-    const faceIndex = chooseFaceIndex(detectionResult.response.faces);
-    if ( faceIndex != null ) {
-      selectFace(detectionResult, faceIndex);
-    }
+    const { width, height } = await getImageSize(image.dataUrl);
+    setImage({
+      ...image,
+      imageWidth: width,
+      imageHeight: height,
+      backendUrl,
+    });
   }, [backendUrl]);
+
+  const selectFace = useCallback(async (faceIndex) => {
+    setRecognition((prev) => {
+      let state = {
+        ...prev,
+        selectedFaceIndex: faceIndex,
+      };
+      const { backendUrl, faces, recognitions } = state;
+      if ( recognitions[faceIndex] == null ) {
+        const { embedding } = faces[faceIndex];
+        setTimeout(async () => {
+          const recognitionResult = await recognizeFace({ backendUrl, embedding });
+          setRecognition((prev) => {
+            const state = {...prev}
+            state.recognitions = [...prev.recognitions];
+            state.recognitions[faceIndex] = recognitionResult;
+            return state;
+          });
+        }, 100);
+      }
+      return state;
+    });
+  }, []);
+
+  useEffect(async () => {
+    if ( image == null ) return;
+    if ( image == detection.image ) return;
+
+    const { backendUrl, file } = image;
+    const detectionResult = await detectFace({ backendUrl, imageFile: file });
+    const { faces } = detectionResult.response;
+    setDetection({
+      image,
+      backendUrl,
+      faces,
+    });
+  }, [image]);
+
+  useEffect(() => {
+    if ( detection.image == null ) return;
+    if ( detection.image == recognition.image ) return;
+
+    const selectedFaceIndex = chooseFaceIndex(detection.faces);
+    setRecognition({
+      ...detection,
+      selectedFaceIndex,
+      recognitions: [],
+    });
+    if ( selectedFaceIndex != null ) {
+      selectFace(selectedFaceIndex);
+    }
+  }, [detection]);
 
   return (
     <div className="App">
@@ -223,48 +266,48 @@ export default function App() {
           <span>ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。</span>
         </ImageDropzone>
       </div>
-      {state != null && state.detectionResult != null && (
+      {image != null && (
         <>
           <h1>Result</h1>
           <div>
             <DetectionResultImage
-              imageUrl={state.image.dataUrl}
-              imageWidth={state.detectionResult.request.imageWidth}
-              imageHeight={state.detectionResult.request.imageHeight}
-              faces={state.detectionResult == null ? [] : state.detectionResult.response.faces}
-              selectedFaceIndex={state.selectedFaceIndex}
-              onFaceClick={({ index, face }) => selectFace(state.detectionResult, index)} />
+                imageUrl={image.dataUrl}
+                imageWidth={image.imageWidth}
+                imageHeight={image.imageHeight}
+                faces={detection.image == image ? detection.faces : []}
+                selectedFaceIndex={recognition.image == image ? recognition.selectedFaceIndex : null}
+                onFaceClick={({ index, face }) => selectFace(index)} />
           </div>
-          {face != null && (
-            <div>
-            </div>
-          )}
-          {recognitionResult != null && (
-            <table>
-              <tbody>
-                {recognitionResult.actors.map((actor, index) => (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>
-                      <FaceImage
-                          imageUrl={state.image.dataUrl}
-                          imageWidth={state.detectionResult.request.imageWidth}
-                          imageHeight={state.detectionResult.request.imageHeight}
-                          face={face}
-                          faceWidth={125}
-                          faceHeight={125} />
-                    </td>
-                    <td>
-                      <img
-                        src={actor.fanza.faceImage.url}
-                        width={125}
-                        height={125} />
-                    </td>
-                    <td>{actor.similarity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {recognition.image == image && (
+            recognition.recognitions[recognition.selectedFaceIndex] == null ? (
+              <div>検索中...</div>
+            ) : (
+              <table>
+                <tbody>
+                  {recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <FaceCroppedImage
+                            imageUrl={image.dataUrl}
+                            imageWidth={image.imageWidth}
+                            imageHeight={image.imageHeight}
+                            face={recognition.faces[recognition.selectedFaceIndex]}
+                            faceWidth={125}
+                            faceHeight={125} />
+                      </td>
+                      <td>
+                        <img
+                          src={actor.fanza.faceImage.url}
+                          width={125}
+                          height={125} />
+                      </td>
+                      <td>{actor.similarity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
           )}
         </>
       )}
