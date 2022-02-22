@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import Dropzone from "react-dropzone";
 
+import { detectFace, recognizeFace } from "./lib/api";
 import "./App.css";
 
 function loadFile(file) {
@@ -11,31 +12,6 @@ function loadFile(file) {
     }, false);
     fileReader.readAsDataURL(file);
   });
-}
-
-async function detectFace({ backendUrl, imageFile }) {
-  const formData = new FormData();
-  formData.append("file", imageFile)
-  const options = {
-    method: "POST",
-    body: formData,
-  };
-  const response = await fetch(`${backendUrl}/detect`, options);
-  return await response.json();
-}
-
-async function recognizeFace({ backendUrl, embedding }) {
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      embedding,
-    }),
-  };
-  const response = await fetch(`${backendUrl}/recognize`, options);
-  return await response.json();
 }
 
 function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children = null }) {
