@@ -31,9 +31,10 @@ function ImageDropzone({ onImageDrop = () => {}, acceptableTypes = [], children 
   const onDrop = useCallback(async (acceptedFiles) => {
     if ( acceptedFiles.length < 0 ) return;
     if ( acceptableTypes.indexOf(acceptedFiles[0].type) < 0 ) return;
-    const imageFile = acceptedFiles[0];
-    const imageDataUrl = await loadFile(imageFile);
-    onImageDrop({file: imageFile, dataUrl: imageDataUrl});
+    const file = acceptedFiles[0];
+    const dataUrl = await loadFile(file);
+    const { width, height } = await getImageSize(dataUrl);
+    onImageDrop({ file, dataUrl, width, height });
   }, [onImageDrop]);
 
   return (
@@ -179,12 +180,11 @@ export default function App() {
   const [recognition, setRecognition] = useState({image: null});
 
   const onImageDrop = useCallback(async (image) => {
-    const { width, height } = await getImageSize(image.dataUrl);
     setImage({
       ...image,
-      imageWidth: width,
-      imageHeight: height,
-      backendUrl,
+      settings: {
+        backendUrl,
+      },
     });
   }, [backendUrl]);
 
@@ -194,9 +194,9 @@ export default function App() {
         ...prev,
         selectedFaceIndex: faceIndex,
       };
-      const { backendUrl, faces, recognitions } = state;
-      if ( recognitions[faceIndex] == null ) {
-        const { embedding } = faces[faceIndex];
+      if ( state.recognitions[faceIndex] == null ) {
+        const { backendUrl } = state.image.settings;
+        const { embedding } = state.faces[faceIndex];
         setTimeout(async () => {
           const recognitionResult = await recognizeFace({ backendUrl, embedding });
           setRecognition((prev) => {
@@ -215,13 +215,10 @@ export default function App() {
     if ( image == null ) return;
     if ( image == detection.image ) return;
 
-    const { backendUrl, file } = image;
-    const detectionResult = await detectFace({ backendUrl, imageFile: file });
-    const { faces } = detectionResult.response;
+    const detectionResult = await detectFace({ backendUrl: image.settings.backendUrl, imageFile: image.file });
     setDetection({
       image,
-      backendUrl,
-      faces,
+      faces: detectionResult.response.faces,
     });
   }, [image]);
 
@@ -272,8 +269,8 @@ export default function App() {
           <div>
             <DetectionResultImage
                 imageUrl={image.dataUrl}
-                imageWidth={image.imageWidth}
-                imageHeight={image.imageHeight}
+                imageWidth={image.width}
+                imageHeight={image.height}
                 faces={detection.image == image ? detection.faces : []}
                 selectedFaceIndex={recognition.image == image ? recognition.selectedFaceIndex : null}
                 onFaceClick={({ index, face }) => selectFace(index)} />
@@ -290,8 +287,8 @@ export default function App() {
                       <td>
                         <FaceCroppedImage
                             imageUrl={image.dataUrl}
-                            imageWidth={image.imageWidth}
-                            imageHeight={image.imageHeight}
+                            imageWidth={image.width}
+                            imageHeight={image.height}
                             face={recognition.faces[recognition.selectedFaceIndex]}
                             faceWidth={125}
                             faceHeight={125} />
