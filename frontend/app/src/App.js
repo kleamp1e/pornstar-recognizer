@@ -40,56 +40,63 @@ const colorMap = {
   "F": "#CC0000",
 };
 
+function BoundingBoxRect({ boundingBox, ...props }) {
+  const { x1, y1, x2, y2 } = boundingBox;
+  return (
+    <rect
+        x={x1}
+        y={y1}
+        width={x2 - x1}
+        height={y2 - y1}
+        {...props} />
+  );
+}
+
+/*
+function offsetBoundingBox(boundingBox, offset) {
+  const { x1, y1, x2, y2 } = boundingBox;
+  return {
+    x1: x1 - offset,
+    y1: y1 - offset,
+    x2: x2 + offset,
+    y2: y2 + offset,
+  };
+}
+*/
+
 function BoundingBox({ face, selected, onClick }) {
-  const { x1, y1, x2, y2 } = face.boundingBox;
   const color = colorMap[face.sex];
   const alpha = (selected ? "CC" : "99");
-  const strokeWidth = (selected ? 3 : 1);
   return (
-    <g>
-      <rect
-          x={x1 - 1}
-          y={y1 - 1}
-          width={x2 - x1 + 2}
-          height={y2 - y1 + 2}
+    <>
+      <BoundingBoxRect
+          boundingBox={face.boundingBox}
           stroke={"#FFFFFF" + alpha}
-          strokeWidth={strokeWidth}
+          strokeWidth={selected ? 5 : 3}
           fill="none" />
-      <rect
-          x={x1}
-          y={y1}
-          width={x2 - x1}
-          height={y2 - y1}
-          stroke={color + alpha}
-          strokeWidth={strokeWidth}
-          fill="none" />
-      <rect
+      <BoundingBoxRect
           style={{cursor: "pointer"}}
-          x={x1}
-          y={y1}
-          width={x2 - x1}
-          height={y2 - y1}
-          stroke="none"
+          boundingBox={face.boundingBox}
+          stroke={color + alpha}
+          strokeWidth={selected ? 3 : 1}
           fill="#FFFFFF00"
           onClick={onClick} />
-    </g>
+    </>
   );
 };
 
 function Face({ face, selected, onClick }) {
   return (
-    <g>
-      <BoundingBox
-          face={face}
-          selected={selected}
-          onClick={onClick} />
-    </g>
+    <BoundingBox
+        face={face}
+        selected={selected}
+        onClick={onClick} />
   );
 }
 
 function Faces({ faces, selectedIndex, onClick }) {
   return (
-    <g>
+    <>
       {faces.map((face, index) => (
         <Face
             key={index}
@@ -97,7 +104,7 @@ function Faces({ faces, selectedIndex, onClick }) {
             selected={index === selectedIndex}
             onClick={() => onClick({ index, face })} />
       ))}
-    </g>
+    </>
   );
 }
 
