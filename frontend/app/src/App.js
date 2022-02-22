@@ -94,21 +94,21 @@ function Face({ face, selected, onClick }) {
   );
 }
 
-function Faces({ faces, selectedIndex, onClick }) {
+function Faces({ faces, selectedFaceIndex, onClick }) {
   return (
     <>
       {faces.map((face, index) => (
         <Face
             key={index}
             face={face}
-            selected={index === selectedIndex}
+            selected={index === selectedFaceIndex}
             onClick={() => onClick({ index, face })} />
       ))}
     </>
   );
 }
 
-function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces, selectedIndex, onFaceClick }) {
+function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces, selectedFaceIndex, onFaceClick }) {
   return (
     <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +124,7 @@ function DetectionResultImage({ imageUrl, imageWidth, imageHeight, faces, select
           href={imageUrl} />
       <Faces
           faces={faces}
-          selectedIndex={selectedIndex}
+          selectedFaceIndex={selectedFaceIndex}
           onClick={onFaceClick} />
     </svg>
   );
@@ -148,29 +148,52 @@ function FaceImage({ imageUrl, imageWidth, imageHeight, face, faceWidth = 200, f
     </svg>
   );
 }
+
+function chooseFaceIndex(faces) {
+  if ( faces.length <= 0 ) return null;
+  for ( let index = 0; index < faces.length; index++ ) {
+    if ( faces[index].sex == "F" ) {
+      return index;
+    }
+  }
+  return null;
+}
+
 export default function App() {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8001");
-  const [image, setImage] = useState(null);
-  const [detectionResult, setDetectionResult] = useState(null);
+
+  const [state, setState] = useState(null);
+
   const [face, setFace] = useState(null);
   const [recognitionResult, setRecognitionResult] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  const selectFace = async (detectionResult, faceIndex) => {
+    setState((prev) => ({
+      ...prev,
+      selectedFaceIndex: faceIndex,
+    }));
+
+    const face = detectionResult.response.faces[faceIndex];
+    setFace(face);
+    console.log({face});
+    const { embedding } = face;
+    const recognitionResult = await recognizeFace({ backendUrl, embedding });
+    console.log({recognitionResult});
+    setRecognitionResult(recognitionResult);
+  };
 
   const onImageDrop = useCallback(async (image) => {
-    setImage(image);
+    setState({ image });
 
     const detectionResult = await detectFace({ backendUrl, imageFile: image.file });
-    console.log({detectionResult});
-    setDetectionResult(detectionResult);
+    setState((prev) => ({
+      ...prev,
+      detectionResult,
+    }));
 
-    if ( detectionResult.response.faces.length > 0 ) {
-      const face = detectionResult.response.faces[1];
-      setFace(face);
-      console.log({face});
-      const { embedding } = face;
-      const recognitionResult = await recognizeFace({ backendUrl, embedding });
-      console.log({recognitionResult});
-      setRecognitionResult(recognitionResult);
+    const faceIndex = chooseFaceIndex(detectionResult.response.faces);
+    if ( faceIndex != null ) {
+      selectFace(detectionResult, faceIndex);
     }
   }, [backendUrl]);
 
@@ -200,17 +223,17 @@ export default function App() {
           <span>ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。</span>
         </ImageDropzone>
       </div>
-      {image != null && detectionResult != null && (
+      {state != null && state.detectionResult != null && (
         <>
           <h1>Result</h1>
           <div>
             <DetectionResultImage
-              imageUrl={image.dataUrl}
-              imageWidth={detectionResult.request.imageWidth}
-              imageHeight={detectionResult.request.imageHeight}
-              faces={detectionResult == null ? [] : detectionResult.response.faces}
-              selectedIndex={selectedIndex}
-              onFaceClick={({ index, face }) => setSelectedIndex(index)} />
+              imageUrl={state.image.dataUrl}
+              imageWidth={state.detectionResult.request.imageWidth}
+              imageHeight={state.detectionResult.request.imageHeight}
+              faces={state.detectionResult == null ? [] : state.detectionResult.response.faces}
+              selectedFaceIndex={state.selectedFaceIndex}
+              onFaceClick={({ index, face }) => selectFace(state.detectionResult, index)} />
           </div>
           {face != null && (
             <div>
@@ -224,9 +247,9 @@ export default function App() {
                     <td>{index + 1}</td>
                     <td>
                       <FaceImage
-                          imageUrl={image.dataUrl}
-                          imageWidth={detectionResult.request.imageWidth}
-                          imageHeight={detectionResult.request.imageHeight}
+                          imageUrl={state.image.dataUrl}
+                          imageWidth={state.detectionResult.request.imageWidth}
+                          imageHeight={state.detectionResult.request.imageHeight}
                           face={face}
                           faceWidth={125}
                           faceHeight={125} />
