@@ -1,6 +1,18 @@
 .App {
 }
 
+.image-dropzone-outer {
+  padding: 0px 5px;
+}
+
+.image-dropzone-inner {
+  padding: 25px 5px;
+  border: solid 1px #CCCCCC;
+  background-color: #F0F0F0;
+  cursor: pointer;
+  text-align: center;
+}
+
 table.actors {
   margin: 0.3em;
   border-collapse: collapse;

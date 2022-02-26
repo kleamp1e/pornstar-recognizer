@@ -164,7 +164,7 @@ export default function App() {
   return (
     <div className="App">
       <h1>Pornstar Recognizer</h1>
-      <h1>Settings</h1>
+      <h2>Settings</h2>
       <label>
         Backend URL:{" "}
         <input
@@ -173,23 +173,19 @@ export default function App() {
             value={backendUrl}
             onChange={(e) => setBackendUrl(e.target.value)} />
       </label>
-      <h1>Input</h1>
-      <div
-          style={{
-            cursor: "pointer",
-            border: "solid 1px #CCCCCC",
-            padding: "5px",
-            width: "400px",
-          }}>
+      <h2>Input</h2>
+      <div className="image-dropzone-outer">
         <ImageDropzone
             onImageDrop={onImageDrop}
             acceptableTypes={["image/jpeg"]}>
-          <span>ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。</span>
+          <div className="image-dropzone-inner">
+            ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。
+          </div>
         </ImageDropzone>
       </div>
       {image != null && (
         <>
-          <h1>Result</h1>
+          <h2>Result</h2>
           <div>
             <FaceDetectionImage
                 imageUrl={image.dataUrl}
