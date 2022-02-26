@@ -16,6 +16,46 @@ function chooseFaceIndex(faces) {
   return null;
 }
 
+function ActorTable({ image, recognition }) {
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>選択された顔</th>
+          <th>類似する顔</th>
+          <th>類似度</th>
+          <th>情報</th>
+        </tr>
+      </thead>
+      <tbody>
+        {recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
+          <tr key={index}>
+            <td align="right">{index + 1}</td>
+            <td>
+              <FaceCroppedImage
+                  imageUrl={image.dataUrl}
+                  imageWidth={image.width}
+                  imageHeight={image.height}
+                  face={recognition.faces[recognition.selectedFaceIndex]}
+                  faceWidth={125}
+                  faceHeight={125} />
+            </td>
+            <td>
+              <img
+                  src={actor.fanza.faceImage.url}
+                  width={125}
+                  height={125} />
+            </td>
+            <td align="right">{(Math.max(0.0, Math.min(1.0, actor.similarity)) * 100).toFixed(2)} %</td>
+            <td>{JSON.stringify(actor.names)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export default function App() {
   const [backendUrl, setBackendUrl] = useState("http://localhost:8001");
   const [image, setImage] = useState(null);
@@ -122,41 +162,9 @@ export default function App() {
             recognition.recognitions[recognition.selectedFaceIndex] == null ? (
               <div>検索中...</div>
             ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>選択された顔</th>
-                    <th>類似する顔</th>
-                    <th>類似度</th>
-                    <th>情報</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
-                    <tr key={index}>
-                      <td align="right">{index + 1}</td>
-                      <td>
-                        <FaceCroppedImage
-                            imageUrl={image.dataUrl}
-                            imageWidth={image.width}
-                            imageHeight={image.height}
-                            face={recognition.faces[recognition.selectedFaceIndex]}
-                            faceWidth={125}
-                            faceHeight={125} />
-                      </td>
-                      <td>
-                        <img
-                            src={actor.fanza.faceImage.url}
-                            width={125}
-                            height={125} />
-                      </td>
-                      <td align="right">{(Math.max(0.0, Math.min(1.0, actor.similarity)) * 100).toFixed(2)} %</td>
-                      <td>{JSON.stringify(actor.names)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ActorTable
+                  image={image}
+                  recognition={recognition} />
             )
           )}
         </>
