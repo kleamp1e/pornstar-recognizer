@@ -1,20 +1,28 @@
 .App {
+  padding: 10px;
 }
 
 .image-dropzone-outer {
-  padding: 0px 5px;
+  padding: 0px 10px;
 }
 
 .image-dropzone-inner {
-  padding: 25px 5px;
+  padding: 25px 10px;
   border: solid 1px #CCCCCC;
   background-color: #F0F0F0;
   cursor: pointer;
   text-align: center;
 }
 
+.detection-outer {
+  padding: 0px 10px;
+}
+
+.recognition-outer {
+  padding: 0px 10px;
+}
+
 table.actors {
-  margin: 0.3em;
   border-collapse: collapse;
   border-color: #CCCCCC;
   border-style: solid;

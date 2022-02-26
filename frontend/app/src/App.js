@@ -164,46 +164,53 @@ export default function App() {
   return (
     <div className="App">
       <h1>Pornstar Recognizer</h1>
-      <h2>Settings</h2>
+      <h2>設定</h2>
       <label>
-        Backend URL:{" "}
+        バックエンドのURL:{" "}
         <input
             type="text"
             size={50}
             value={backendUrl}
             onChange={(e) => setBackendUrl(e.target.value)} />
       </label>
-      <h2>Input</h2>
+      <h2>画像選択</h2>
       <div className="image-dropzone-outer">
         <ImageDropzone
             onImageDrop={onImageDrop}
             acceptableTypes={["image/jpeg"]}>
           <div className="image-dropzone-inner">
-            ここをクリックするか、JPEG画像をドラッグ＆ドロップしてください。
+            ここをクリックして画像を選択するか、画像をドラッグ＆ドロップしてください。<br />
+            JPEG画像のみ対応しています。
           </div>
         </ImageDropzone>
       </div>
       {image != null && (
         <>
-          <h2>Result</h2>
-          <div>
-            <FaceDetectionImage
-                imageUrl={image.dataUrl}
-                imageWidth={image.width}
-                imageHeight={image.height}
-                faces={detection.image == image ? detection.faces : []}
-                selectedFaceIndex={recognition.image == image ? recognition.selectedFaceIndex : null}
-                onFaceClick={({ index, face }) => selectFace(index)} />
+          <h2>認識結果</h2>
+          <div className="detection-outer">
+            <div>検索したい顔をクリックしてください。</div>
+            <div>
+              <FaceDetectionImage
+                  imageUrl={image.dataUrl}
+                  imageWidth={image.width}
+                  imageHeight={image.height}
+                  faces={detection.image == image ? detection.faces : []}
+                  selectedFaceIndex={recognition.image == image ? recognition.selectedFaceIndex : null}
+                  onFaceClick={({ index, face }) => selectFace(index)} />
+            </div>
           </div>
-          {recognition.image == image && (
-            recognition.recognitions[recognition.selectedFaceIndex] == null ? (
-              <div>検索中...</div>
-            ) : (
-              <ActorTable
-                  image={image}
-                  recognition={recognition} />
-            )
-          )}
+          <h2>検索結果</h2>
+          <div className="recognition-outer">
+            {recognition.image == image && (
+              recognition.recognitions[recognition.selectedFaceIndex] == null ? (
+                <div>検索中...</div>
+              ) : (
+                <ActorTable
+                    image={image}
+                    recognition={recognition} />
+              )
+            )}
+          </div>
         </>
       )}
     </div>
