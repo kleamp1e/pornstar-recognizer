@@ -16,6 +16,35 @@ function chooseFaceIndex(faces) {
   return null;
 }
 
+function splitActorNames(names) {
+  const result = [];
+  const types = ["ja", "jaKana", "en"];
+  for ( let name of names ) {
+    for ( let type of types ) {
+      if ( type in name && name[type] != null ) {
+        result.push({name: name[type], type});
+      }
+    }
+  }
+  return result;
+}
+
+function ActorNames({ names }) {
+  const [firstName, ...restNames] = splitActorNames(names);
+  return (
+    <div className="actor-names">
+      <span className="main-name">{firstName.name}</span>
+      {restNames.length >= 1 && (
+        <ul className="other-name-list">
+          {restNames.map(({ name }) => (
+            <li className="other-name">{name}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function ActorTable({ image, recognition }) {
   return (
     <table>
@@ -48,7 +77,7 @@ function ActorTable({ image, recognition }) {
                   height={125} />
             </td>
             <td align="right">{(Math.max(0.0, Math.min(1.0, actor.similarity)) * 100).toFixed(2)} %</td>
-            <td>{JSON.stringify(actor.names)}</td>
+            <td><ActorNames names={actor.names} /></td>
           </tr>
         ))}
       </tbody>
