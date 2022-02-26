@@ -123,10 +123,19 @@ export default function App() {
               <div>検索中...</div>
             ) : (
               <table>
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>選択された顔</th>
+                    <th>類似する顔</th>
+                    <th>類似度</th>
+                    <th>情報</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
                     <tr key={index}>
-                      <td>{index + 1}</td>
+                      <td align="right">{index + 1}</td>
                       <td>
                         <FaceCroppedImage
                             imageUrl={image.dataUrl}
@@ -142,7 +151,7 @@ export default function App() {
                             width={125}
                             height={125} />
                       </td>
-                      <td>{actor.similarity}</td>
+                      <td align="right">{(Math.max(0.0, Math.min(1.0, actor.similarity)) * 100).toFixed(2)} %</td>
                       <td>{JSON.stringify(actor.names)}</td>
                     </tr>
                   ))}
