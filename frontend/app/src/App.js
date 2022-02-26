@@ -143,6 +143,7 @@ export default function App() {
                             height={125} />
                       </td>
                       <td>{actor.similarity}</td>
+                      <td>{JSON.stringify(actor.names)}</td>
                     </tr>
                   ))}
                 </tbody>
