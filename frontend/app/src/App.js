@@ -66,28 +66,32 @@ function ActorTable({ image, recognition }) {
         </tr>
       </thead>
       <tbody>
-        {recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
-          <tr key={index} className={index % 2 == 0 ? "even" : "odd"}>
-            <td className="number">{index + 1}</td>
-            <td>
-              <FaceCroppedImage
-                  imageUrl={image.dataUrl}
-                  imageWidth={image.width}
-                  imageHeight={image.height}
-                  face={recognition.faces[recognition.selectedFaceIndex]}
-                  faceWidth={100}
-                  faceHeight={100} />
-            </td>
-            <td>
-              <img
-                  src={actor.fanza.faceImage.url}
-                  width={100}
-                  height={100} />
-            </td>
-            <td><Similarity similarity={actor.similarity} /></td>
-            <td><ActorNames names={actor.names} /></td>
-          </tr>
-        ))}
+        {recognition.recognitions[recognition.selectedFaceIndex].actors.length <= 0 ? (
+          <tr><td colSpan={5}>類似する女優が見つかりませんでした</td></tr>
+        ) : (
+          recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
+            <tr key={index} className={index % 2 == 0 ? "even" : "odd"}>
+              <td className="number">{index + 1}</td>
+              <td>
+                <FaceCroppedImage
+                    imageUrl={image.dataUrl}
+                    imageWidth={image.width}
+                    imageHeight={image.height}
+                    face={recognition.faces[recognition.selectedFaceIndex]}
+                    faceWidth={100}
+                    faceHeight={100} />
+              </td>
+              <td>
+                <img
+                    src={actor.fanza.faceImage.url}
+                    width={100}
+                    height={100} />
+              </td>
+              <td><Similarity similarity={actor.similarity} /></td>
+              <td><ActorNames names={actor.names} /></td>
+            </tr>
+          ))
+        )}
       </tbody>
     </table>
   );
