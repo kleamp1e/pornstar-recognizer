@@ -45,9 +45,17 @@ function ActorNames({ names }) {
   );
 }
 
+function Similarity({ similarity }) {
+  return (
+    <div className="similarity">
+      {(Math.max(0.0, Math.min(1.0, similarity)) * 100).toFixed(1)}%
+    </div>
+  );
+}
+
 function ActorTable({ image, recognition }) {
   return (
-    <table>
+    <table className="actors">
       <thead>
         <tr>
           <th>No</th>
@@ -59,24 +67,24 @@ function ActorTable({ image, recognition }) {
       </thead>
       <tbody>
         {recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
-          <tr key={index}>
-            <td align="right">{index + 1}</td>
+          <tr key={index} className={index % 2 == 0 ? "even" : "odd"}>
+            <td className="number">{index + 1}</td>
             <td>
               <FaceCroppedImage
                   imageUrl={image.dataUrl}
                   imageWidth={image.width}
                   imageHeight={image.height}
                   face={recognition.faces[recognition.selectedFaceIndex]}
-                  faceWidth={125}
-                  faceHeight={125} />
+                  faceWidth={100}
+                  faceHeight={100} />
             </td>
             <td>
               <img
                   src={actor.fanza.faceImage.url}
-                  width={125}
-                  height={125} />
+                  width={100}
+                  height={100} />
             </td>
-            <td align="right">{(Math.max(0.0, Math.min(1.0, actor.similarity)) * 100).toFixed(2)} %</td>
+            <td><Similarity similarity={actor.similarity} /></td>
             <td><ActorNames names={actor.names} /></td>
           </tr>
         ))}
