@@ -67,7 +67,19 @@ function ActorTable({ image, recognition }) {
       </thead>
       <tbody>
         {recognition.recognitions[recognition.selectedFaceIndex].actors.length <= 0 ? (
-          <tr><td colSpan={5}>類似する女優が見つかりませんでした</td></tr>
+          <tr>
+            <td></td>
+            <td>
+              <FaceCroppedImage
+                  imageUrl={image.dataUrl}
+                  imageWidth={image.width}
+                  imageHeight={image.height}
+                  face={recognition.faces[recognition.selectedFaceIndex]}
+                  faceWidth={100}
+                  faceHeight={100} />
+            </td>
+            <td colSpan={3}>類似する女優が見つかりませんでした</td>
+          </tr>
         ) : (
           recognition.recognitions[recognition.selectedFaceIndex].actors.map((actor, index) => (
             <tr key={index} className={index % 2 == 0 ? "even" : "odd"}>
