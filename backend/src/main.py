@@ -158,7 +158,7 @@ def round4(value):
 DB_DIR = pathlib.Path(os.environ.get("DB_DIR"))
 SERVICE = {
     "name": "pornstar-recognizer-backend",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "libraries": {
         "cv2": cv2.__version__,
         "insightface": insightface.__version__,
