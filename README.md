@@ -14,13 +14,19 @@ docker-compose build
 docker-compose up -d
 ```
 
-## 使用方法
+## フロントエンドの使用方法
+
+1. ウェブブラウザから http://localhost:8002/ にアクセスします。
+2. 画像をアップロードします。
+3. 必要に応じて、顔を選択します。
+
+## APIの使用方法
 
 ```sh
 # 検索対象の画像を取得します。
 wget https://pics.dmm.co.jp/mono/actjpgs/hatano_yui.jpg
 
-# 顔認識します。
+# 顔検出します。
 curl -X POST \
   --header "Content-Type: multipart/form-data" \
   --form "file=@hatano_yui.jpg;type=image/jpeg" \
@@ -58,3 +64,7 @@ curl -X POST \
 * [ディープラーニングで「顔が似ているAV女優を教えてくれるbot」を構築 - Qiita](https://qiita.com/tmnck/items/af82deb04d432f1f4f6e)
 * [chainerによるディープラーニングでAV女優の類似画像検索サービスをつくったノウハウを公開する - Qiita](https://qiita.com/xolmon/items/0b82f4861cf93fd28e33)
 * [Facenetを使った類似AV女優検索 - Qiita](https://qiita.com/zeze/items/1cec8c75833c853b5074)
+
+## 更新履歴
+
+* 2022/03/02: フロントエンドを追加しました。
