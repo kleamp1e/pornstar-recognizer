@@ -12,7 +12,6 @@ RUN apt-get update \
   && rm --recursive --force /var/lib/apt/lists/*
 RUN python3 -m pip install --upgrade pip setuptools
 WORKDIR /opt/app
-ARG COMPUTING_DEVICE
 COPY requirements1.txt ./
 RUN python3 -m pip install --requirement requirements1.txt
 COPY requirements2.txt ./
