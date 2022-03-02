@@ -12,7 +12,6 @@ RUN apt-get update \
   && rm --recursive --force /var/lib/apt/lists/*
 RUN python3 -m pip install --upgrade pip setuptools
 WORKDIR /opt/app
-ARG COMPUTING_DEVICE
 COPY requirements1.txt ./
 RUN python3 -m pip install --requirement requirements1.txt
 COPY requirements2.txt ./
@@ -29,6 +28,8 @@ RUN apt-get update \
   && unzip -d buffalo_l buffalo_l.zip
 
 COPY src/ ./src/
+COPY db/ ./db/
+ENV DB_DIR /opt/app/db
 RUN chmod 755 /root
 ENV HOME /root
 CMD ["uvicorn", "--host=0.0.0.0", "--app-dir=src", "main:app"]
