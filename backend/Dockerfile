@@ -29,6 +29,8 @@ RUN apt-get update \
   && unzip -d buffalo_l buffalo_l.zip
 
 COPY src/ ./src/
+COPY db/ ./db/
+ENV DB_DIR /opt/app/db
 RUN chmod 755 /root
 ENV HOME /root
 CMD ["uvicorn", "--host=0.0.0.0", "--app-dir=src", "main:app"]

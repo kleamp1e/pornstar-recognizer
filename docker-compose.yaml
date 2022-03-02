@@ -4,10 +4,7 @@ services:
     build: "backend"
     ports:
       - "8001:8000"
-    environment:
-      DB_DIR: "/mnt/db"
-    volumes:
-      - "./backend/db:/mnt/db:ro"
+    # volumes:
       # - "./backend:/mnt/workspace" # DEBUG:
     # working_dir: "/mnt/workspace" # DEBUG:
     # command: "/bin/bash" # DEBUG:
