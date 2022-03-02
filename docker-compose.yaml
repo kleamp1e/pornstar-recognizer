@@ -16,11 +16,11 @@ services:
   frontend:
     build: "frontend"
     ports:
-      # - "8002:3000"
-      - "3000:3000" # DEBUG:
-    volumes:
-      - "./frontend:/mnt/workspace" # DEBUG:
-    working_dir: "/mnt/workspace/app" # DEBUG:
+      - "8002:3000"
+      # - "3000:3000" # DEBUG:
+    # volumes:
+      # - "./frontend:/mnt/workspace" # DEBUG:
+    # working_dir: "/mnt/workspace/app" # DEBUG:
     # command: "/bin/sh" # DEBUG:
-    command: "npm start" # DEBUG:
-    tty: true # DEBUG:
+    # command: "npm start" # DEBUG:
+    # tty: true # DEBUG:
